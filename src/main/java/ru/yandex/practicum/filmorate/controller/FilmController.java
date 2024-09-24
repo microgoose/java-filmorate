@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -25,26 +27,38 @@ public class FilmController {
     }
 
     @PostMapping
-    public Film addFilm(@RequestBody Film film) {
+    public ResponseEntity<Film> addFilm(@RequestBody Film film) {
         log.info("Add film: {}", film);
-        validate(film);
+
+        try {
+            validate(film);
+        } catch (ValidationException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
         film.setId(id++);
         films.put(film.getId(), film);
-        return film;
+        return ResponseEntity.ok(film);
     }
 
     @PutMapping
-    public Film updateFilm(@RequestBody Film film) {
+    public ResponseEntity<Film> updateFilm(@RequestBody Film film) {
         log.info("Update film: {}", film);
-        validate(film);
 
-        if (film.getId() == null)
-            throw new IllegalArgumentException("Не передан id!");
-        if (!films.containsKey(film.getId()))
-            throw new IllegalArgumentException("Не найден фильм с таким id!");
+        try {
+            validate(film);
+
+            if (film.getId() == null)
+                throw new IllegalArgumentException("Не передан id!");
+            if (!films.containsKey(film.getId()))
+                throw new IllegalArgumentException("Не найден фильм с таким id!");
+        } catch (ValidationException | IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
 
         films.put(film.getId(), film);
-        return film;
+
+        return ResponseEntity.ok(film);
     }
 
     private void validate(Film film) {

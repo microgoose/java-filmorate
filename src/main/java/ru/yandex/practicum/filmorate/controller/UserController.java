@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.controller;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
@@ -25,9 +27,15 @@ public class UserController {
     }
 
     @PostMapping
-    public User add(@RequestBody User user) {
+    public ResponseEntity<User> add(@RequestBody User user) {
         log.info("Add user: {}", user);
-        validate(user);
+
+        try {
+            validate(user);
+        } catch (ValidationException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
         user.setId(id++);
 
         if (user.getName() == null || user.getName().isEmpty()) {
@@ -35,21 +43,26 @@ public class UserController {
         }
 
         users.put(user.getId(), user);
-        return user;
+        return ResponseEntity.ok(user);
     }
 
     @PutMapping
-    public User update(@RequestBody User user) {
+    public ResponseEntity<User> update(@RequestBody User user) {
         log.info("Update user: {}", user);
-        validate(user);
 
-        if (user.getId() == null)
-            throw new IllegalArgumentException("Не передан id!");
-        if (!users.containsKey(user.getId()))
-            throw new IllegalArgumentException("Не найден пользователь с таким id!");
+        try {
+            validate(user);
+
+            if (user.getId() == null)
+                throw new IllegalArgumentException("Не передан id!");
+            if (!users.containsKey(user.getId()))
+                throw new IllegalArgumentException("Не найден пользователь с таким id!");
+        } catch (ValidationException | IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
 
         users.put(user.getId(), user);
-        return user;
+        return ResponseEntity.ok(user);
     }
 
     private void validate(User user) {
