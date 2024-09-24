@@ -33,7 +33,7 @@ public class UserController {
         try {
             validate(user);
         } catch (ValidationException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(user);
         }
 
         user.setId(id++);
@@ -51,14 +51,18 @@ public class UserController {
         log.info("Update user: {}", user);
 
         try {
-            validate(user);
-
             if (user.getId() == null)
                 throw new IllegalArgumentException("Не передан id!");
             if (!users.containsKey(user.getId()))
                 throw new IllegalArgumentException("Не найден пользователь с таким id!");
-        } catch (ValidationException | IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(user);
+        }
+
+        try {
+            validate(user);
+        } catch (ValidationException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(user);
         }
 
         users.put(user.getId(), user);

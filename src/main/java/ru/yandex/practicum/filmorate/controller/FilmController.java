@@ -33,7 +33,7 @@ public class FilmController {
         try {
             validate(film);
         } catch (ValidationException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(film);
         }
 
         film.setId(id++);
@@ -46,14 +46,18 @@ public class FilmController {
         log.info("Update film: {}", film);
 
         try {
-            validate(film);
-
             if (film.getId() == null)
                 throw new IllegalArgumentException("Не передан id!");
             if (!films.containsKey(film.getId()))
                 throw new IllegalArgumentException("Не найден фильм с таким id!");
-        } catch (ValidationException | IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(film);
+        }
+
+        try {
+            validate(film);
+        } catch (ValidationException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(film);
         }
 
         films.put(film.getId(), film);
