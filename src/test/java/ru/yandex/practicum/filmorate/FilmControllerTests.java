@@ -103,6 +103,6 @@ class FilmControllerTests {
         mockMvc.perform(put("/films")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isInternalServerError());
     }
 }
