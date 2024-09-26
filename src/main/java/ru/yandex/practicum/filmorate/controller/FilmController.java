@@ -51,7 +51,7 @@ public class FilmController {
             if (!films.containsKey(film.getId()))
                 throw new IllegalArgumentException("Не найден фильм с таким id!");
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(film);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(film);
         }
 
         try {
