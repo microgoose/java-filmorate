@@ -8,11 +8,10 @@ import java.time.LocalDate;
 
 @Data
 public class Film {
-    public Integer id;
+    public Long id;
     public String name;
     public String description;
+    public Integer rate;
     public LocalDate releaseDate;
-
-    @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
-    public Duration duration;
+    public @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT) Duration duration;
 }
