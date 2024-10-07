@@ -13,5 +13,5 @@ public interface UserStorage {
 
     User update(User user);
 
-    boolean contains(User user);
+    boolean contains(long userId);
 }

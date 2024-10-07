@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.storage.memory;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserFriend;
 import ru.yandex.practicum.filmorate.storage.UserFriendStorage;
 
@@ -15,34 +14,40 @@ public class InMemoryUserFriendStorage implements UserFriendStorage {
     List<UserFriend> userFriends = new ArrayList<>();
 
     @Override
-    public List<UserFriend> getFriends(User user) {
+    public List<UserFriend> getFriends(Long userId) {
         return userFriends.stream()
-                .filter(uf -> Objects.equals(uf.getUserId(), user.getId()))
+                .filter(uf -> Objects.equals(uf.getUserId(), userId))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public UserFriend addFriend(User user, User friend) {
-        UserFriend userFriend = new UserFriend();
-        userFriend.setId((long) userFriends.size());
-        userFriend.setUserId(user.getId());
-        userFriend.setFriendId(friend.getId());
+    public UserFriend addFriend(Long userId, Long friendId) {
+        UserFriend userFriend = UserFriend.builder()
+                .id((long) userFriends.size())
+                .userId(userId)
+                .friendId(friendId).build();
 
         userFriends.add(userFriend);
         return userFriend;
     }
 
     @Override
-    public void removeFriend(User user, User friend) {
+    public void removeFriend(Long userId, Long friendId) {
         UserFriend userFriend = userFriends.stream()
                 .filter(uf ->
-                    Objects.equals(uf.getUserId(), user.getId()) &&
-                    Objects.equals(uf.getFriendId(), friend.getId())
+                    Objects.equals(uf.getUserId(), userId) &&
+                    Objects.equals(uf.getFriendId(), friendId)
                 ).findFirst().orElse(null);
 
         if (userFriend == null)
             return;
 
         userFriends.remove(userFriend);
+    }
+
+    @Override
+    public boolean containsFriend(Long user, Long friend) {
+        return userFriends.stream().anyMatch(ufl ->
+                Objects.equals(ufl.getUserId(), user) && Objects.equals(ufl.getFriendId(), friend));
     }
 }

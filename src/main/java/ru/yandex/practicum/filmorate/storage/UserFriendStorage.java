@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserFriend;
 
 import java.util.List;
 
 public interface UserFriendStorage {
-    List<UserFriend> getFriends(User user);
+    List<UserFriend> getFriends(Long user);
 
-    UserFriend addFriend(User user, User friend);
+    UserFriend addFriend(Long user, Long friend);
 
-    void removeFriend(User user, User friend);
+    void removeFriend(Long user, Long friend);
+
+    boolean containsFriend(Long user, Long friend);
 }

@@ -1,14 +1,21 @@
 package ru.yandex.practicum.filmorate;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import java.time.LocalDate;
+
+import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,8 +23,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 class UserControllerTests {
+    private final MockMvc mockMvc;
+    private final ObjectMapper objectMapper;
+    private final UserService userService;
+
     @Autowired
-    private MockMvc mockMvc;
+    public UserControllerTests(MockMvc mockMvc, ObjectMapper objectMapper, UserService userService) {
+        this.mockMvc = mockMvc;
+        this.objectMapper = objectMapper;
+        this.userService = userService;
+    }
 
     @Test
     void shouldGetUsers() throws Exception {
@@ -27,12 +42,16 @@ class UserControllerTests {
 
     @Test
     void shouldAddUser() throws Exception {
-        String newUserJson = "{\"email\":\"test@mail.com\",\"login\":\"testLogin\",\"birthday\":\"2000-01-01\"}";
+        User newUser = User.builder()
+                .email("test@mail.com")
+                .login("testLogin")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUserJson))
-                .andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(newUser)))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(notNullValue())))
                 .andExpect(jsonPath("$.email", is("test@mail.com")))
                 .andExpect(jsonPath("$.login", is("testLogin")))
@@ -49,57 +68,83 @@ class UserControllerTests {
 
     @Test
     void shouldAddUserAndSetName() throws Exception {
-        String newUserJson = "{\"email\":\"test2@mail.com\",\"login\":\"testLogin2\",\"birthday\":\"2000-01-01\"}";
+        User newUser = User.builder()
+                .email("test2@mail.com")
+                .login("testLogin2")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUserJson))
-                .andExpect(status().isOk())
+                        .content(objectMapper.writeValueAsString(newUser)))
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name", is("testLogin2"))); // Имя устанавливается как логин, если пустое
     }
 
     @Test
     void shouldNotAddUserWithIncorrectEmail() throws Exception {
-        String newUserJson = "{\"email\":\"invalidemail\",\"login\":\"testLogin\",\"birthday\":\"2000-01-01\"}";
+        User newUser = User.builder()
+                .email("invalidemail")
+                .login("testLogin")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUserJson))
+                        .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldNotAddUserWithoutPassword() throws Exception {
-        String newUserJson = "{\"email\":\"test@mail.com\",\"login\":\"\",\"birthday\":\"2000-01-01\"}";
+        User newUser = User.builder()
+                .email("test@mail.com")
+                .login("")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUserJson))
+                        .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldNotAddUserWithBirthdayInFuture() throws Exception {
-        String newUserJson = "{\"email\":\"test@mail.com\",\"login\":\"testLogin\",\"birthday\":\"3000-01-01\"}";
+        User newUser = User.builder()
+                .email("test@mail.com")
+                .login("testLogin")
+                .birthday(LocalDate.of(3000, 1, 1))
+                .build();
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(newUserJson))
+                        .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldUpdateUser() throws Exception {
-        String newUserJson = "{\"email\":\"test@mail.com\",\"login\":\"testLogin\",\"birthday\":\"2000-01-01\"}";
+        User newUser = User.builder()
+                .email("test@mail.com")
+                .login("testLogin")
+                .birthday(LocalDate.of(2000, 1, 1))
+                .build();
+
         mockMvc.perform(post("/users")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(newUserJson));
+                .content(objectMapper.writeValueAsString(newUser)));
 
-        String updatedUserJson = "{\"id\":1,\"email\":\"updated@mail.com\",\"login\":\"updatedLogin\",\"birthday\":\"1995-05-05\"}";
+        User updatedUser = User.builder()
+                .id(1L)
+                .email("updated@mail.com")
+                .login("updatedLogin")
+                .birthday(LocalDate.of(1995, 5, 5))
+                .build();
 
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updatedUserJson))
+                        .content(objectMapper.writeValueAsString(updatedUser)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email", is("updated@mail.com")))
                 .andExpect(jsonPath("$.login", is("updatedLogin")));
@@ -110,26 +155,124 @@ class UserControllerTests {
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
-                .andExpect(status().isInternalServerError());
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldNotUpdateUserWithoutId() throws Exception {
-        String updateUserWithoutIdJson = "{\"email\":\"updated@mail.com\",\"login\":\"updatedLogin\",\"birthday\":\"1995-05-05\"}";
+        User updatedUserWithoutId = User.builder()
+                .email("updated@mail.com")
+                .login("updatedLogin")
+                .birthday(LocalDate.of(1995, 5, 5))
+                .build();
 
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(updateUserWithoutIdJson))
-                .andExpect(status().isInternalServerError());
+                        .content(objectMapper.writeValueAsString(updatedUserWithoutId)))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
     void shouldNotUpdateNonExistUser() throws Exception {
-        String nonExistentUserJson = "{\"id\":999,\"email\":\"nonexist@mail.com\",\"login\":\"nonExist\",\"birthday\":\"1990-01-01\"}";
+        User nonExistentUser = User.builder()
+                .id(999L)
+                .email("nonexist@mail.com")
+                .login("nonExist")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
 
         mockMvc.perform(put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(nonExistentUserJson))
-                .andExpect(status().isInternalServerError());
+                        .content(objectMapper.writeValueAsString(nonExistentUser)))
+                .andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    public void shouldAddFriend() throws Exception {
+        User user = userService.addUser(createUser());
+        User friend = userService.addUser(createUser());
+
+        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void shouldNotAddExistFriend() throws Exception {
+        User user = userService.addUser(createUser());
+        User friend = userService.addUser(createUser());
+
+        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void shouldNotAddNonExistFriendUser() throws Exception {
+        User user = userService.addUser(createUser());
+
+        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), -1)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void shouldRemoveFriend() throws Exception {
+        User user = userService.addUser(createUser());
+        User friend = userService.addUser(createUser());
+
+        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+                .andExpect(status().isCreated());
+        mockMvc.perform(delete(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void shouldNotRemoveNonExistFriend() throws Exception {
+        User user = userService.addUser(createUser());
+
+        mockMvc.perform(delete(String.format("/users/%d/friends/%d", user.getId(), -1)))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void shouldGetUserFriends() throws Exception {
+        User user = userService.addUser(createUser());
+        User friend = userService.addUser(createUser());
+        User friend1 = userService.addUser(createUser());
+
+        userService.addFriend(user.getId(), friend.getId());
+        userService.addFriend(user.getId(), friend1.getId());
+
+        mockMvc.perform(get(String.format("/users/%d/friends", user.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(equalTo(2)))
+                .andExpect(jsonPath("$[0].id").value(equalTo(friend.getId().intValue())));
+    }
+
+    @Test
+    public void shouldReturnCommonFriends() throws Exception {
+        User user = userService.addUser(createUser());
+        User user2 = userService.addUser(createUser());
+        User friendWithReducedSocialResponsibility = userService.addUser(createUser());
+
+        userService.addFriend(user.getId(), friendWithReducedSocialResponsibility.getId());
+        userService.addFriend(user2.getId(), friendWithReducedSocialResponsibility.getId());
+
+        mockMvc.perform(get(String.format("/users/%d/friends/common/%d", user.getId(), user2.getId())))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(equalTo(1)))
+                .andExpect(jsonPath("$[0].id")
+                        .value(equalTo(friendWithReducedSocialResponsibility.getId().intValue())));
+    }
+
+    private User createUser() {
+        return User.builder()
+                .email("mail@mail.com")
+                .login("Name")
+                .birthday(LocalDate.of(1990, 1, 1))
+                .build();
     }
 }

@@ -3,9 +3,7 @@ package ru.yandex.practicum.filmorate.controller;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -22,6 +20,12 @@ public class FilmController {
         this.filmService = filmService;
     }
 
+    @GetMapping(path = "/{filmId}")
+    public Film getFilm(@PathVariable long filmId) {
+        log.info("Get film {}", filmId);
+        return filmService.getFilm(filmId);
+    }
+
     @GetMapping
     public List<Film> getAll() {
         log.info("Get all films");
@@ -29,26 +33,34 @@ public class FilmController {
     }
 
     @PostMapping
-    public ResponseEntity<Film> addFilm(@RequestBody Film film) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public Film addFilm(@RequestBody Film film) {
         log.info("Add film: {}", film);
-
-        try {
-            return ResponseEntity.ok(filmService.addFilm(film));
-        } catch (ValidationException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(film);
-        }
+        return filmService.addFilm(film);
     }
 
     @PutMapping
-    public ResponseEntity<Film> updateFilm(@RequestBody Film film) {
+    public Film updateFilm(@RequestBody Film film) {
         log.info("Update film: {}", film);
+        return filmService.updateFilm(film);
+    }
 
-        try {
-            return ResponseEntity.ok(filmService.updateFilm(film));
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(film);
-        } catch (ValidationException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(film);
-        }
+    @PostMapping(path = "/{filmId}/like/{userId}")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Film addLike(@PathVariable Long filmId, @PathVariable Long userId) {
+        log.info("Add like to film {} from user {}", filmId, userId);
+        return filmService.addLike(userId, filmId);
+    }
+
+    @DeleteMapping(path = "/{filmId}/like/{userId}")
+    public Film removeLike(@PathVariable Long filmId, @PathVariable Long userId) {
+        log.info("Remove like from film {} with user {}", filmId, userId);
+        return filmService.removeLike(userId, filmId);
+    }
+
+    @GetMapping(path = "/popular")
+    public List<Film> getMostPopular(@RequestParam(required = false, defaultValue = "10") Integer count) {
+        log.info("Get most popular {} films", count);
+        return filmService.getMosPopular(count);
     }
 }

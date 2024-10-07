@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.storage;
 
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.model.UserFilmLike;
 
 import java.util.List;
@@ -9,11 +7,13 @@ import java.util.List;
 public interface UserFilmLikeStorage {
     List<UserFilmLike> getAll();
 
-    List<UserFilmLike> getLikes(User user);
+    List<UserFilmLike> getLikesByUserId(long userId);
 
-    List<UserFilmLike> getLikes(Film film);
+    List<UserFilmLike> getLikesByFilmId(long filmId);
 
-    UserFilmLike addLike(User user, Film film);
+    UserFilmLike addLike(long userId, long filmId);
 
-    void removeLike(User user, Film film);
+    void removeLike(long userId, long filmId);
+
+    boolean containsLike(long userId, long filmId);
 }

@@ -13,5 +13,5 @@ public interface FilmStorage {
 
     Film update(Film film);
 
-    boolean contains(Film film);
+    boolean contains(long id);
 }
