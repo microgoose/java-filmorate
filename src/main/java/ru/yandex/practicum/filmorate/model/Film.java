@@ -13,8 +13,7 @@ public class Film {
     public Long id;
     public String name;
     public String description;
-    @Builder.Default
-    public Integer rate = 0;
+    public Integer rate;
     public LocalDate releaseDate;
     public @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT) Duration duration;
 }

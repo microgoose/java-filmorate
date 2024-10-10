@@ -158,7 +158,7 @@ public class FilmControllerTests {
         User newUser = userService.addUser(createUser());
 
         mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -167,7 +167,7 @@ public class FilmControllerTests {
         User newUser = userService.addUser(createUser());
 
         mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
         mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isBadRequest());
     }
@@ -178,18 +178,9 @@ public class FilmControllerTests {
         User newUser = userService.addUser(createUser());
 
         mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
         mockMvc.perform(delete(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldNotRemoveNonExistLike() throws Exception {
-        Film newFilm = filmService.addFilm(createFilm());
-        User newUser = userService.addUser(createUser());
-
-        mockMvc.perform(delete(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
-                .andExpect(status().isBadRequest());
     }
 
     @Test

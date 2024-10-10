@@ -45,6 +45,10 @@ public class FilmService {
 
     public Film addFilm(Film film) {
         validateFilm(film);
+
+        if (film.getRate() == null)
+            film.setRate(0);
+
         filmStorage.add(film);
         return film;
     }
@@ -69,6 +73,10 @@ public class FilmService {
             throw new InvalidParameterException("Количество фильмов должно быть больше нуля!");
 
         List<Film> films = getAll();
+
+        if (films.isEmpty())
+            return films;
+
         films.sort((f1, f2) -> f2.getRate().compareTo(f1.getRate()));
         return films.subList(0, Math.min(films.size(), count));
     }
@@ -88,9 +96,6 @@ public class FilmService {
             filmLikesStorage.addLike(userId, filmId);
             film.setRate(film.getRate() + 1);
         } else {
-            if (!filmLikesStorage.containsLike(userId, filmId))
-                throw new IllegalArgumentException("Лайк не был поставлен");
-
             filmLikesStorage.removeLike(userId, filmId);
             film.setRate(film.getRate() - 1);
         }
@@ -115,7 +120,7 @@ public class FilmService {
         for (Long filmId : filmIds) {
             if (filmId == null)
                 throw new IllegalArgumentException("Отсутствует id фильма!");
-            if (!userStorage.contains(filmId))
+            if (!filmStorage.contains(filmId))
                 throw new FilmNotFoundException(filmId);
         }
     }

@@ -191,7 +191,7 @@ class UserControllerTests {
         User friend = userService.addUser(createUser());
 
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -200,7 +200,7 @@ class UserControllerTests {
         User friend = userService.addUser(createUser());
 
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isBadRequest());
     }
@@ -219,7 +219,7 @@ class UserControllerTests {
         User friend = userService.addUser(createUser());
 
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
         mockMvc.perform(delete(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isOk());
     }

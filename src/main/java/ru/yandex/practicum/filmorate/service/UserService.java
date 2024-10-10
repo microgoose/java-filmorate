@@ -84,15 +84,13 @@ public class UserService {
             throw new ValidationException("У пользователя уже есть такой друг!");
 
         friendStorage.addFriend(userId, friendId);
+        friendStorage.addFriend(friendId, userId);
     }
 
     public void removeFriend(Long userId, Long friendId) {
         validateUserIdExistence(userId, friendId);
-
-        if (!friendStorage.containsFriend(userId, friendId))
-            throw new ValidationException("У пользователя нет такого друга!");
-
         friendStorage.removeFriend(userId, friendId);
+        friendStorage.removeFriend(friendId, userId);
     }
 
     private void validateUser(User user) {
