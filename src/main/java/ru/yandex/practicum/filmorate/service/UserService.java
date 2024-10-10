@@ -104,7 +104,7 @@ public class UserService {
             throw new ValidationException("Дата рождения не может быть больше текущей.");
     }
 
-    private void validateUserIdExistence(Long ...userIds) {
+    private void validateUserIdExistence(Long... userIds) {
         for (Long userId : userIds) {
             if (userId == null)
                 throw new IllegalArgumentException("Отсутствует id пользователя!");
