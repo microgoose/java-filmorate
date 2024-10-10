@@ -3,7 +3,7 @@ package ru.yandex.practicum.filmorate.utils;
 import java.util.Map;
 
 public class MapUtils {
-    public static <T> long getNextId (Map<Long, T> map) {
+    public static <T> long getNextId(Map<Long, T> map) {
         long currentMaxId = map.keySet()
                 .stream()
                 .mapToLong(id -> id)
