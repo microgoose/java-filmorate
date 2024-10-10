@@ -157,7 +157,7 @@ public class FilmControllerTests {
         Film newFilm = filmService.addFilm(createFilm());
         User newUser = userService.addUser(createUser());
 
-        mockMvc.perform(post(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
+        mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isCreated());
     }
 
@@ -166,9 +166,9 @@ public class FilmControllerTests {
         Film newFilm = filmService.addFilm(createFilm());
         User newUser = userService.addUser(createUser());
 
-        mockMvc.perform(post(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
+        mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isCreated());
-        mockMvc.perform(post(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
+        mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isBadRequest());
     }
 
@@ -177,7 +177,7 @@ public class FilmControllerTests {
         Film newFilm = filmService.addFilm(createFilm());
         User newUser = userService.addUser(createUser());
 
-        mockMvc.perform(post(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
+        mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isCreated());
         mockMvc.perform(delete(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isOk());
@@ -202,8 +202,7 @@ public class FilmControllerTests {
             for (int j = 0; j < i + 1; j++) {
                 User newUser = userService.addUser(createUser());
 
-                mockMvc.perform(post(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
-                        .andExpect(status().isCreated());
+                filmService.addLike(newUser.getId(), newFilm.getId());
             }
         }
 

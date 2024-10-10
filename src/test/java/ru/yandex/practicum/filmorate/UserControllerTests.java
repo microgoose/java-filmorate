@@ -193,7 +193,7 @@ class UserControllerTests {
         User user = userService.addUser(createUser());
         User friend = userService.addUser(createUser());
 
-        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+        mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isCreated());
     }
 
@@ -202,9 +202,9 @@ class UserControllerTests {
         User user = userService.addUser(createUser());
         User friend = userService.addUser(createUser());
 
-        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+        mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isCreated());
-        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+        mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isBadRequest());
     }
 
@@ -212,7 +212,7 @@ class UserControllerTests {
     public void shouldNotAddNonExistFriendUser() throws Exception {
         User user = userService.addUser(createUser());
 
-        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), -1)))
+        mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), -1)))
                 .andExpect(status().isNotFound());
     }
 
@@ -221,7 +221,7 @@ class UserControllerTests {
         User user = userService.addUser(createUser());
         User friend = userService.addUser(createUser());
 
-        mockMvc.perform(post(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
+        mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isCreated());
         mockMvc.perform(delete(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isOk());

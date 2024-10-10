@@ -111,7 +111,7 @@ public class FilmService {
             throw new ValidationException("Продолжительнсть фильма не может быть отрицательной!");
     }
 
-    private void validateFilmIdExistence(Long ...filmIds) {
+    private void validateFilmIdExistence(Long... filmIds) {
         for (Long filmId : filmIds) {
             if (filmId == null)
                 throw new IllegalArgumentException("Отсутствует id фильма!");
