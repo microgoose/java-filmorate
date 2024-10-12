@@ -26,13 +26,15 @@ public class UserService {
     }
 
     public User getUser(Long userId) {
-        if (userId == null)
+        if (userId == null) {
             throw new IllegalArgumentException("Отсутствует id пользователя!");
+        }
 
         User user = userStorage.get(userId);
 
-        if (user == null)
+        if (user == null) {
             throw new UserNotFoundException(userId);
+        }
 
         return userStorage.get(userId);
     }
@@ -42,8 +44,9 @@ public class UserService {
     }
 
     public User addUser(User user) {
-        if (user.getName() == null || user.getName().isEmpty())
+        if (user.getName() == null || user.getName().isEmpty()) {
             user.setName(user.getLogin());
+        }
 
         validateUser(user);
         userStorage.add(user);
@@ -58,8 +61,9 @@ public class UserService {
     }
 
     public List<User> getFriends(Long userId) {
-        if (!userStorage.contains(userId))
+        if (!userStorage.contains(userId)) {
             throw new UserNotFoundException(userId);
+        }
 
         return friendStorage.getFriends(userId).stream()
                 .map(userFriend -> userStorage.get(userFriend.getFriendId()))
@@ -80,8 +84,9 @@ public class UserService {
     public void addFriend(Long userId, Long friendId) {
         validateUserIdExistence(userId, friendId);
 
-        if (friendStorage.containsFriend(userId, friendId))
+        if (friendStorage.containsFriend(userId, friendId)) {
             throw new ValidationException("У пользователя уже есть такой друг!");
+        }
 
         friendStorage.addFriend(userId, friendId);
         friendStorage.addFriend(friendId, userId);
@@ -94,20 +99,25 @@ public class UserService {
     }
 
     private void validateUser(User user) {
-        if (user.getEmail() == null || !user.getEmail().contains("@"))
+        if (user.getEmail() == null || !user.getEmail().contains("@")) {
             throw new ValidationException("Неккоректный email.");
-        if (user.getLogin() == null || user.getLogin().trim().isEmpty())
+        }
+        if (user.getLogin() == null || user.getLogin().trim().isEmpty()) {
             throw new ValidationException("Логин не может быть пустым.");
-        if (user.getBirthday().isAfter(LocalDate.now()))
+        }
+        if (user.getBirthday().isAfter(LocalDate.now())) {
             throw new ValidationException("Дата рождения не может быть больше текущей.");
+        }
     }
 
     private void validateUserIdExistence(Long... userIds) {
         for (Long userId : userIds) {
-            if (userId == null)
+            if (userId == null) {
                 throw new IllegalArgumentException("Отсутствует id пользователя!");
-            if (!userStorage.contains(userId))
+            }
+            if (!userStorage.contains(userId)) {
                 throw new UserNotFoundException(userId);
+            }
         }
     }
 }

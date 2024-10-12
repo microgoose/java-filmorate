@@ -39,8 +39,9 @@ public class InMemoryUserFriendStorage implements UserFriendStorage {
                     Objects.equals(uf.getFriendId(), friendId)
                 ).findFirst().orElse(null);
 
-        if (userFriend == null)
+        if (userFriend == null) {
             return;
+        }
 
         userFriends.remove(userFriend);
     }

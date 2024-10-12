@@ -28,13 +28,15 @@ public class FilmService {
     }
 
     public Film getFilm(Long filmId) {
-        if (filmId == null)
+        if (filmId == null) {
             throw new IllegalArgumentException("Отсутствует id фильма!");
+        }
 
         Film film = filmStorage.get(filmId);
 
-        if (film == null)
+        if (film == null) {
             throw new FilmNotFoundException(filmId);
+        }
 
         return film;
     }
@@ -46,8 +48,9 @@ public class FilmService {
     public Film addFilm(Film film) {
         validateFilm(film);
 
-        if (film.getRate() == null)
+        if (film.getRate() == null) {
             film.setRate(0);
+        }
 
         filmStorage.add(film);
         return film;
@@ -69,29 +72,34 @@ public class FilmService {
     }
 
     public List<Film> getMosPopular(int count) {
-        if (count < 0)
+        if (count < 0) {
             throw new InvalidParameterException("Количество фильмов должно быть больше нуля!");
+        }
 
         List<Film> films = getAll();
 
-        if (films.isEmpty())
+        if (films.isEmpty()) {
             return films;
+        }
 
         films.sort((f1, f2) -> f2.getRate().compareTo(f1.getRate()));
         return films.subList(0, Math.min(films.size(), count));
     }
 
     private Film changeLike(Long userId, Long filmId, boolean isAdd) {
-        if (userId == null)
+        if (userId == null) {
             throw new IllegalArgumentException("Отсутствует id фильма!");
-        if (!userStorage.contains(userId))
+        }
+        if (!userStorage.contains(userId)) {
             throw new UserNotFoundException(userId);
+        }
 
         Film film = getFilm(filmId);
 
         if (isAdd) {
-            if (filmLikesStorage.containsLike(userId, filmId))
+            if (filmLikesStorage.containsLike(userId, filmId)) {
                 throw new IllegalArgumentException("Лайк уже был поставлен");
+            }
 
             filmLikesStorage.addLike(userId, filmId);
             film.setRate(film.getRate() + 1);
@@ -106,22 +114,28 @@ public class FilmService {
     }
 
     private void validateFilm(Film film) {
-        if (film.getName() == null || film.getName().isEmpty())
+        if (film.getName() == null || film.getName().isEmpty()) {
             throw new ValidationException("Название фильма не может быть пустым!");
-        if (film.getDescription().length() > 200)
+        }
+        if (film.getDescription().length() > 200) {
             throw new ValidationException("Описание должно быть не более 200 символов!");
-        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28)))
+        }
+        if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Фильм не может быть выпушен ранее чем 28 декабря 1895 года!");
-        if (film.getDuration().isNegative())
+        }
+        if (film.getDuration().isNegative()) {
             throw new ValidationException("Продолжительнсть фильма не может быть отрицательной!");
+        }
     }
 
     private void validateFilmIdExistence(Long... filmIds) {
         for (Long filmId : filmIds) {
-            if (filmId == null)
+            if (filmId == null) {
                 throw new IllegalArgumentException("Отсутствует id фильма!");
-            if (!filmStorage.contains(filmId))
+            }
+            if (!filmStorage.contains(filmId)) {
                 throw new FilmNotFoundException(filmId);
+            }
         }
     }
 }

@@ -51,8 +51,9 @@ public class InMemoryUserFilmLikeStorage implements UserFilmLikeStorage {
                     Objects.equals(ufl.getFilmId(), filmId)
                 ).findFirst().orElse(null);
 
-        if (userFilmLike == null)
+        if (userFilmLike == null) {
             return;
+        }
 
         userFilmLikes.remove(userFilmLike);
     }
