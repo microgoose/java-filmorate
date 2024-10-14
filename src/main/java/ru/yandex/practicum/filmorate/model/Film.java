@@ -15,5 +15,6 @@ public class Film {
     public String description;
     public Integer rate;
     public LocalDate releaseDate;
-    public @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT) Duration duration;
+    public @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
+    Duration duration;
 }

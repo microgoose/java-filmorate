@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 import java.security.InvalidParameterException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class FilmService {
@@ -83,12 +84,12 @@ public class FilmService {
         }
 
         films.sort((f1, f2) -> f2.getRate().compareTo(f1.getRate()));
-        return films.subList(0, Math.min(films.size(), count));
+        return films.stream().limit(Math.min(films.size(), count)).collect(Collectors.toList());
     }
 
     private Film changeLike(Long userId, Long filmId, boolean isAdd) {
         if (userId == null) {
-            throw new IllegalArgumentException("Отсутствует id фильма!");
+            throw new IllegalArgumentException("Отсутствует id пользователя!");
         }
         if (!userStorage.contains(userId)) {
             throw new UserNotFoundException(userId);
@@ -128,14 +129,12 @@ public class FilmService {
         }
     }
 
-    private void validateFilmIdExistence(Long... filmIds) {
-        for (Long filmId : filmIds) {
-            if (filmId == null) {
-                throw new IllegalArgumentException("Отсутствует id фильма!");
-            }
-            if (!filmStorage.contains(filmId)) {
-                throw new FilmNotFoundException(filmId);
-            }
+    private void validateFilmIdExistence(Long filmId) {
+        if (filmId == null) {
+            throw new IllegalArgumentException("Отсутствует id фильма!");
+        }
+        if (!filmStorage.contains(filmId)) {
+            throw new FilmNotFoundException(filmId);
         }
     }
 }
