@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -11,8 +11,9 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.utils.FilmBuilder;
+import ru.yandex.practicum.filmorate.utils.UserBuilder;
 
-import java.time.Duration;
 import java.time.LocalDate;
 
 import static org.hamcrest.Matchers.*;
@@ -48,7 +49,7 @@ public class FilmControllerTests {
                 .name("Inception")
                 .description("A mind-bending thriller.")
                 .releaseDate(LocalDate.of(2010, 7, 16))
-                .duration(Duration.ofMinutes(148))
+                .duration(148)
                 .build();
 
         mockMvc.perform(post("/films")
@@ -74,7 +75,7 @@ public class FilmControllerTests {
                 .name("")
                 .description("A mind-bending thriller.")
                 .releaseDate(LocalDate.of(2010, 7, 16))
-                .duration(Duration.ofMinutes(148))
+                .duration(148)
                 .build();
 
         mockMvc.perform(post("/films")
@@ -89,7 +90,7 @@ public class FilmControllerTests {
                 .name("Inception")
                 .description("A".repeat(201))  // Генерация длинного описания
                 .releaseDate(LocalDate.of(2010, 7, 16))
-                .duration(Duration.ofMinutes(148))
+                .duration(148)
                 .build();
 
         mockMvc.perform(post("/films")
@@ -104,7 +105,7 @@ public class FilmControllerTests {
                 .name("Inception")
                 .description("A mind-bending thriller.")
                 .releaseDate(LocalDate.of(2010, 7, 16))
-                .duration(Duration.ofMinutes(-148))  // Неверная продолжительность (отрицательное значение)
+                .duration(-148)  // Неверная продолжительность (отрицательное значение)
                 .build();
 
         mockMvc.perform(post("/films")
@@ -119,7 +120,7 @@ public class FilmControllerTests {
                 .name("Updated Film")
                 .description("Updated description.")
                 .releaseDate(LocalDate.of(2020, 1, 1))
-                .duration(Duration.ofMinutes(120))
+                .duration(120)
                 .build();
 
         mockMvc.perform(put("/films")
@@ -135,7 +136,7 @@ public class FilmControllerTests {
                 .name("Non-Existent Film")
                 .description("Non-existent description.")
                 .releaseDate(LocalDate.of(2020, 1, 1))
-                .duration(Duration.ofMinutes(120))
+                .duration(120)
                 .build();
 
         mockMvc.perform(put("/films")
@@ -154,8 +155,8 @@ public class FilmControllerTests {
 
     @Test
     public void shouldAddLike() throws Exception {
-        Film newFilm = filmService.addFilm(createFilm());
-        User newUser = userService.addUser(createUser());
+        Film newFilm = filmService.addFilm(FilmBuilder.createFilm());
+        User newUser = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isOk());
@@ -163,8 +164,8 @@ public class FilmControllerTests {
 
     @Test
     public void shouldNotAddSecondLike() throws Exception {
-        Film newFilm = filmService.addFilm(createFilm());
-        User newUser = userService.addUser(createUser());
+        Film newFilm = filmService.addFilm(FilmBuilder.createFilm());
+        User newUser = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isOk());
@@ -174,8 +175,8 @@ public class FilmControllerTests {
 
     @Test
     public void shouldRemoveLike() throws Exception {
-        Film newFilm = filmService.addFilm(createFilm());
-        User newUser = userService.addUser(createUser());
+        Film newFilm = filmService.addFilm(FilmBuilder.createFilm());
+        User newUser = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(put(String.format("/films/%d/like/%d", newFilm.getId(), newUser.getId())))
                 .andExpect(status().isOk());
@@ -188,10 +189,10 @@ public class FilmControllerTests {
         int maxCount = 12;
 
         for (int i = 0; i < maxCount; i++) {
-            Film newFilm = filmService.addFilm(createFilm());
+            Film newFilm = filmService.addFilm(FilmBuilder.createFilm());
 
             for (int j = 0; j < i + 1; j++) {
-                User newUser = userService.addUser(createUser());
+                User newUser = userService.addUser(UserBuilder.createUser());
 
                 filmService.addLike(newUser.getId(), newFilm.getId());
             }
@@ -207,23 +208,5 @@ public class FilmControllerTests {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(equalTo(maxCount)))
                 .andExpect(jsonPath("$[0].rate").value(equalTo(maxCount)));
-    }
-
-    private Film createFilm() {
-        return Film.builder()
-                .name("Inception")
-                .description("A mind-bending thriller.")
-                .releaseDate(LocalDate.of(2010, 7, 16))
-                .duration(Duration.ofMinutes(148))
-                .build();
-    }
-
-    private User createUser() {
-        return User.builder()
-                .name("user")
-                .login("user")
-                .birthday(LocalDate.now())
-                .email("user@email.com")
-                .build();
     }
 }

@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class UserFriend {
-    public Long id;
-    public Long userId;
-    public Long friendId;
+    public User user;
+    public User friend;
+    public FriendshipStatus friendshipStatus;
 }
