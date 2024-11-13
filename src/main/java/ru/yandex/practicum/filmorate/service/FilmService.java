@@ -147,10 +147,6 @@ public class FilmService {
         if (film.getDuration() < 0) {
             throw new ValidationException("Продолжительнсть фильма не может быть отрицательной!");
         }
-        if (film.getMpa() == null) {
-//            В тестах постмана можно без МПА
-//            throw new ValidationException("Укажите MPA рейтинг!");
-        }
     }
 
     private void validateFilmIdExistence(Long filmId) {
