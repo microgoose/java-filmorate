@@ -1,11 +1,10 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 
-import java.time.Duration;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -14,7 +13,8 @@ public class Film {
     public String name;
     public String description;
     public Integer rate;
+    public MpaRating mpa;
+    public List<Genre> genres;
     public LocalDate releaseDate;
-    public @JsonFormat(shape = JsonFormat.Shape.NUMBER_INT)
-    Duration duration;
+    public Integer duration;
 }

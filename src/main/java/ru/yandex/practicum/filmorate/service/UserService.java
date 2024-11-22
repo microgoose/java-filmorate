@@ -1,18 +1,19 @@
 package ru.yandex.practicum.filmorate.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.exceptions.UserNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.model.UserFriend;
 import ru.yandex.practicum.filmorate.storage.UserFriendStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
+import ru.yandex.practicum.filmorate.util.SQLExceptionUtil;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class UserService {
@@ -30,17 +31,17 @@ public class UserService {
             throw new IllegalArgumentException("Отсутствует id пользователя!");
         }
 
-        User user = userStorage.get(userId);
+        Optional<User> userOptional = userStorage.findById(userId);
 
-        if (user == null) {
+        if (userOptional.isEmpty()) {
             throw new UserNotFoundException(userId);
         }
 
-        return userStorage.get(userId);
+        return userOptional.get();
     }
 
     public List<User> getAll() {
-        return userStorage.getAll();
+        return userStorage.findAll();
     }
 
     public User addUser(User user) {
@@ -65,37 +66,36 @@ public class UserService {
             throw new UserNotFoundException(userId);
         }
 
-        return friendStorage.getFriends(userId).stream()
-                .map(userFriend -> userStorage.get(userFriend.getFriendId()))
-                .collect(Collectors.toList());
+        return userStorage.getFriends(userId);
     }
 
     public List<User> getCommonFriends(Long firstUser, Long secondUser) {
-        validateUserIdExistence(firstUser, secondUser);
-        List<UserFriend> firstFriends = friendStorage.getFriends(firstUser);
-        List<UserFriend> secondFriends = friendStorage.getFriends(secondUser);
-
-        return firstFriends.stream()
-                .filter(ff -> secondFriends.stream().anyMatch(sf -> Objects.equals(ff.getFriendId(), sf.getFriendId())))
-                .map(ff -> userStorage.get(ff.getFriendId()))
-                .collect(Collectors.toList());
+        validateUserIdExistence(firstUser);
+        validateUserIdExistence(secondUser);
+        return userStorage.getCommonFriends(firstUser, secondUser);
     }
 
     public void addFriend(Long userId, Long friendId) {
-        validateUserIdExistence(userId, friendId);
+        validateUserIdExistence(userId);
+        validateUserIdExistence(friendId);
 
-        if (friendStorage.containsFriend(userId, friendId)) {
-            throw new ValidationException("У пользователя уже есть такой друг!");
+        try {
+            friendStorage.add(userId, friendId, 1L); //pending
+        } catch (DataIntegrityViolationException ex) {
+            if (ex.getCause() instanceof SQLException) {
+                if (SQLExceptionUtil.isConstraintViolation((SQLException) ex.getCause())) {
+                    throw new ValidationException("Друг уже существует");
+                }
+            }
+
+            throw ex;
         }
-
-        friendStorage.addFriend(userId, friendId);
-        friendStorage.addFriend(friendId, userId);
     }
 
     public void removeFriend(Long userId, Long friendId) {
-        validateUserIdExistence(userId, friendId);
-        friendStorage.removeFriend(userId, friendId);
-        friendStorage.removeFriend(friendId, userId);
+        validateUserIdExistence(userId);
+        validateUserIdExistence(friendId);
+        friendStorage.remove(userId, friendId);
     }
 
     private void validateUser(User user) {
@@ -110,14 +110,12 @@ public class UserService {
         }
     }
 
-    private void validateUserIdExistence(Long... userIds) {
-        for (Long userId : userIds) {
-            if (userId == null) {
-                throw new IllegalArgumentException("Отсутствует id пользователя!");
-            }
-            if (!userStorage.contains(userId)) {
-                throw new UserNotFoundException(userId);
-            }
+    private void validateUserIdExistence(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("Отсутствует id пользователя!");
+        }
+        if (!userStorage.contains(userId)) {
+            throw new UserNotFoundException(userId);
         }
     }
 }

@@ -1,4 +1,4 @@
-package ru.yandex.practicum.filmorate;
+package ru.yandex.practicum.filmorate.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -9,8 +9,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.utils.UserBuilder;
 
 import java.time.LocalDate;
+import java.util.Random;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -39,9 +41,11 @@ class UserControllerTests {
 
     @Test
     void shouldAddUser() throws Exception {
+        String email = new Random().ints().toString() + "shouldAddUserTest@mail.com";
+        String login = new Random().ints().toString() + "shouldAddUserTestLogin";
         User newUser = User.builder()
-                .email("test@mail.com")
-                .login("testLogin")
+                .email(email)
+                .login(login)
                 .birthday(LocalDate.of(2000, 1, 1))
                 .build();
 
@@ -50,8 +54,8 @@ class UserControllerTests {
                         .content(objectMapper.writeValueAsString(newUser)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id", is(notNullValue())))
-                .andExpect(jsonPath("$.email", is("test@mail.com")))
-                .andExpect(jsonPath("$.login", is("testLogin")))
+                .andExpect(jsonPath("$.email", is(email)))
+                .andExpect(jsonPath("$.login", is(login)))
                 .andExpect(jsonPath("$.birthday", is("2000-01-01")));
     }
 
@@ -187,8 +191,8 @@ class UserControllerTests {
 
     @Test
     public void shouldAddFriend() throws Exception {
-        User user = userService.addUser(createUser());
-        User friend = userService.addUser(createUser());
+        User user = userService.addUser(UserBuilder.createUser());
+        User friend = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isOk());
@@ -196,8 +200,8 @@ class UserControllerTests {
 
     @Test
     public void shouldNotAddExistFriend() throws Exception {
-        User user = userService.addUser(createUser());
-        User friend = userService.addUser(createUser());
+        User user = userService.addUser(UserBuilder.createUser());
+        User friend = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isOk());
@@ -207,7 +211,7 @@ class UserControllerTests {
 
     @Test
     public void shouldNotAddNonExistFriendUser() throws Exception {
-        User user = userService.addUser(createUser());
+        User user = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), -1)))
                 .andExpect(status().isNotFound());
@@ -215,8 +219,8 @@ class UserControllerTests {
 
     @Test
     public void shouldRemoveFriend() throws Exception {
-        User user = userService.addUser(createUser());
-        User friend = userService.addUser(createUser());
+        User user = userService.addUser(UserBuilder.createUser());
+        User friend = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(put(String.format("/users/%d/friends/%d", user.getId(), friend.getId())))
                 .andExpect(status().isOk());
@@ -226,7 +230,7 @@ class UserControllerTests {
 
     @Test
     public void shouldNotRemoveNonExistFriend() throws Exception {
-        User user = userService.addUser(createUser());
+        User user = userService.addUser(UserBuilder.createUser());
 
         mockMvc.perform(delete(String.format("/users/%d/friends/%d", user.getId(), -1)))
                 .andExpect(status().isNotFound());
@@ -234,9 +238,9 @@ class UserControllerTests {
 
     @Test
     public void shouldGetUserFriends() throws Exception {
-        User user = userService.addUser(createUser());
-        User friend = userService.addUser(createUser());
-        User friend1 = userService.addUser(createUser());
+        User user = userService.addUser(UserBuilder.createUser());
+        User friend = userService.addUser(UserBuilder.createUser());
+        User friend1 = userService.addUser(UserBuilder.createUser());
 
         userService.addFriend(user.getId(), friend.getId());
         userService.addFriend(user.getId(), friend1.getId());
@@ -250,9 +254,9 @@ class UserControllerTests {
 
     @Test
     public void shouldReturnCommonFriends() throws Exception {
-        User user = userService.addUser(createUser());
-        User user2 = userService.addUser(createUser());
-        User friendWithReducedSocialResponsibility = userService.addUser(createUser());
+        User user = userService.addUser(UserBuilder.createUser());
+        User user2 = userService.addUser(UserBuilder.createUser());
+        User friendWithReducedSocialResponsibility = userService.addUser(UserBuilder.createUser());
 
         userService.addFriend(user.getId(), friendWithReducedSocialResponsibility.getId());
         userService.addFriend(user2.getId(), friendWithReducedSocialResponsibility.getId());
@@ -263,13 +267,5 @@ class UserControllerTests {
                 .andExpect(jsonPath("$.length()").value(equalTo(1)))
                 .andExpect(jsonPath("$[0].id")
                         .value(equalTo(friendWithReducedSocialResponsibility.getId().intValue())));
-    }
-
-    private User createUser() {
-        return User.builder()
-                .email("mail@mail.com")
-                .login("Name")
-                .birthday(LocalDate.of(1990, 1, 1))
-                .build();
     }
 }

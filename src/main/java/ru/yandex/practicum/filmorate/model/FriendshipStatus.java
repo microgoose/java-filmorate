@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserFilmLike {
-    public User user;
-    public Film film;
+public class FriendshipStatus {
+    public Long id;
+    public String name;
 }

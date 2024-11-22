@@ -12,20 +12,27 @@ import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.security.InvalidParameterException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class FilmService {
     private final FilmStorage filmStorage;
     private final UserStorage userStorage;
     private final UserFilmLikeStorage filmLikesStorage;
+    private final FilmGenreService filmGenreService;
+    private final MpaRatingService mpaRatingService;
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage, UserFilmLikeStorage filmLikesStorage) {
+    public FilmService(FilmStorage filmStorage, UserStorage userStorage,
+                       UserFilmLikeStorage filmLikesStorage, FilmGenreService filmGenreService, MpaRatingService mpaRatingService) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
         this.filmLikesStorage = filmLikesStorage;
+        this.filmGenreService = filmGenreService;
+        this.mpaRatingService = mpaRatingService;
     }
 
     public Film getFilm(Long filmId) {
@@ -33,13 +40,13 @@ public class FilmService {
             throw new IllegalArgumentException("Отсутствует id фильма!");
         }
 
-        Film film = filmStorage.get(filmId);
+        Optional<Film> film = filmStorage.get(filmId);
 
-        if (film == null) {
+        if (film.isEmpty()) {
             throw new FilmNotFoundException(filmId);
         }
 
-        return film;
+        return film.get();
     }
 
     public List<Film> getAll() {
@@ -53,7 +60,22 @@ public class FilmService {
             film.setRate(0);
         }
 
+        if (film.getGenres() == null) {
+            film.setGenres(new ArrayList<>());
+        } else {
+            film.setGenres(new HashSet<>(film.getGenres()).stream().toList());
+        }
+
+        if (film.getMpa() != null && !mpaRatingService.contains(film.getMpa().getId())) {
+            throw new ValidationException("Не существует МПА рейтинг с ID: " + film.getMpa().getId());
+        }
+
         filmStorage.add(film);
+
+        if (!film.getGenres().isEmpty()) {
+            filmGenreService.add(film);
+        }
+
         return film;
     }
 
@@ -61,6 +83,11 @@ public class FilmService {
         validateFilm(film);
         validateFilmIdExistence(film.getId());
         filmStorage.update(film);
+
+        if (film.getGenres() != null && !film.getGenres().isEmpty()) {
+            filmGenreService.update(film);
+        }
+
         return film;
     }
 
@@ -77,14 +104,7 @@ public class FilmService {
             throw new InvalidParameterException("Количество фильмов должно быть больше нуля!");
         }
 
-        List<Film> films = getAll();
-
-        if (films.isEmpty()) {
-            return films;
-        }
-
-        films.sort((f1, f2) -> f2.getRate().compareTo(f1.getRate()));
-        return films.stream().limit(Math.min(films.size(), count)).collect(Collectors.toList());
+        return filmStorage.getMostPopular(count);
     }
 
     private Film changeLike(Long userId, Long filmId, boolean isAdd) {
@@ -98,7 +118,7 @@ public class FilmService {
         Film film = getFilm(filmId);
 
         if (isAdd) {
-            if (filmLikesStorage.containsLike(userId, filmId)) {
+            if (filmLikesStorage.contains(userId, filmId)) {
                 throw new IllegalArgumentException("Лайк уже был поставлен");
             }
 
@@ -124,7 +144,7 @@ public class FilmService {
         if (film.getReleaseDate().isBefore(LocalDate.of(1895, 12, 28))) {
             throw new ValidationException("Фильм не может быть выпушен ранее чем 28 декабря 1895 года!");
         }
-        if (film.getDuration().isNegative()) {
+        if (film.getDuration() < 0) {
             throw new ValidationException("Продолжительнсть фильма не может быть отрицательной!");
         }
     }
